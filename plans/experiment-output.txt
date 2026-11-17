@@ -1,0 +1,97 @@
+Timing is on.
+Pager usage is off.
+SET
+Time: 0.120 ms
+DROP INDEX
+Time: 0.171 ms
+DROP INDEX
+Time: 0.051 ms
+ANALYZE
+Time: 139.540 ms
+ experiment 
+------------
+ BASELINE
+(1 row)
+
+Time: 0.162 ms
+                                         QUERY PLAN                                          
+---------------------------------------------------------------------------------------------
+ Limit (actual time=31.705..36.328 rows=50 loops=1)
+   Buffers: shared hit=8448
+   ->  Gather Merge (actual time=31.703..36.321 rows=50 loops=1)
+         Workers Planned: 2
+         Workers Launched: 2
+         Buffers: shared hit=8448
+         ->  Sort (actual time=28.923..28.929 rows=40 loops=3)
+               Sort Key: created_at DESC
+               Sort Method: top-N heapsort  Memory: 31kB
+               Buffers: shared hit=8448
+               Worker 0:  Sort Method: top-N heapsort  Memory: 30kB
+               Worker 1:  Sort Method: top-N heapsort  Memory: 31kB
+               ->  Parallel Seq Scan on orders (actual time=0.019..28.338 rows=3333 loops=3)
+                     Filter: ((tenant_id = 40) AND (status = 'paid'::text))
+                     Rows Removed by Filter: 330000
+                     Buffers: shared hit=8334
+ Planning:
+   Buffers: shared hit=50
+ Planning Time: 0.154 ms
+ Execution Time: 36.355 ms
+(20 rows)
+
+Time: 36.992 ms
+CREATE INDEX
+Time: 581.931 ms
+ANALYZE
+Time: 157.894 ms
+   experiment    
+-----------------
+ INCORRECT_ORDER
+(1 row)
+
+Time: 0.170 ms
+                                                  QUERY PLAN                                                  
+--------------------------------------------------------------------------------------------------------------
+ Limit (actual time=0.553..0.662 rows=50 loops=1)
+   Buffers: shared hit=50 read=66
+   I/O Timings: shared read=0.338
+   ->  Index Scan using idx_orders_created_tenant_status on orders (actual time=0.552..0.657 rows=50 loops=1)
+         Index Cond: ((tenant_id = 40) AND (status = 'paid'::text))
+         Buffers: shared hit=50 read=66
+         I/O Timings: shared read=0.338
+ Planning:
+   Buffers: shared hit=17 read=1
+   I/O Timings: shared read=0.009
+ Planning Time: 0.163 ms
+ Execution Time: 0.678 ms
+(12 rows)
+
+Time: 1.066 ms
+DROP INDEX
+Time: 4.506 ms
+CREATE INDEX
+Time: 1168.934 ms (00:01.169)
+ANALYZE
+Time: 150.277 ms
+  experiment   
+---------------
+ CORRECT_ORDER
+(1 row)
+
+Time: 0.145 ms
+                                                  QUERY PLAN                                                  
+--------------------------------------------------------------------------------------------------------------
+ Limit (actual time=0.030..0.106 rows=50 loops=1)
+   Buffers: shared hit=50 read=3
+   I/O Timings: shared read=0.010
+   ->  Index Scan using idx_orders_tenant_status_created on orders (actual time=0.029..0.101 rows=50 loops=1)
+         Index Cond: ((tenant_id = 40) AND (status = 'paid'::text))
+         Buffers: shared hit=50 read=3
+         I/O Timings: shared read=0.010
+ Planning:
+   Buffers: shared hit=19 read=1
+   I/O Timings: shared read=0.006
+ Planning Time: 0.136 ms
+ Execution Time: 0.118 ms
+(12 rows)
+
+Time: 0.421 ms
